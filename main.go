@@ -9,16 +9,14 @@ import (
 )
 
 var sock_path string = "/tmp/server.sock"
-var bit_path string = "overlay/top.bit"
-var Args []string = []string{"sudo", "python3", "r1.py", sock_path, bit_path}
+var Args []string = []string{"sudo", "python3", "r1.py", sock_path, "any args"}
 var Timeout int = 15
 
 func main() {
 	worker := api.API{
-		//URL: "https://mecrm.dolylab.cc/api/v0.5",
-		URL: "http://172.21.39.32:8332/api/v0.5",
+		URL: "",
 		Runtimes: []string{
-			"pynq_k",
+			"default",
 		},
 	}
 	closer := executer.Closer{}
@@ -94,10 +92,10 @@ func main() {
 			if code == 1 {
 				fmt.Println("exec error")
 			} else {
-				//fmt.Println("exec timeout error")
+				fmt.Println("exec timeout error")
 			}
-			//status = api.Failed
-			status = api.Finished
+			status = api.Failed
+			//status = api.Finished
 			//closer.Delete(Exec.Runtime)
 			//continue
 		} else {

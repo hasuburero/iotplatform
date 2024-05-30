@@ -1,11 +1,5 @@
 import socket
 import sys
-import time
-import numpy as np
-from pynq import allocate
-from pynq import Overlay
-from pynq import MMIO
-import pandas as pd
 
 
 class BaseClient:
@@ -158,14 +152,15 @@ class FPGA():
         # output
         msg = ""
         for i in range(len(full_path)):
-            msg += str(full_path[i][0]) + "," + str(full_path[i][1]) + "," + str(full_path[i][2]) + "\n"
+            msg += str(full_path[i][0]) + "," + str(full_path[i]
+                                                    [1]) + "," + str(full_path[i][2]) + "\n"
 
         self.cli.send(msg)
         print(len(msg))
 
 
 if __name__ == "__main__":
-    #sock_path = sys.argv[2]
+    # sock_path = sys.argv[2]
     print(sys.argv[0])
     sock_path = "/tmp/server.sock"
     fpga = FPGA(sock_path, sys.argv[2])

@@ -8,10 +8,9 @@ import (
 )
 
 const (
-	runtime = "pynq_k"
-	path    = "input_data_lastflag_6.txt"
-	url = "http://172.21.39.32:8332/api/v0.5"
-	//url     = "https://mecrm.dolylab.cc/api/v0.5"
+	runtime = ""
+	path    = ""
+	url = ""
 )
 
 func main() {

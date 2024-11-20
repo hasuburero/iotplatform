@@ -37,6 +37,5 @@ func (self *API) GET_ping(arg string) (int, string, error) {
 	if err != nil {
 		return -1, string(resBody), err
 	}
-	fmt.Println(ctx)
 	return ctx.Code, ctx.Message, nil
 }

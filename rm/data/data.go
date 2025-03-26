@@ -206,7 +206,7 @@ func AccessController(arg AccessController_interface) AccessController_interface
 			return_value = get_data
 		}
 	default:
-		fmt.Println("passed default (AccessController)")
+		fmt.Println("passed default (data.AccessController)")
 		return_value = nil
 	}
 	AccessMux.Unlock()

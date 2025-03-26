@@ -3,6 +3,7 @@ package job
 import (
 	"errors"
 	"fmt"
+	"rm/sched"
 	"strconv"
 	"sync"
 	"time"
@@ -13,6 +14,7 @@ type Job_Struct struct {
 	Job_id      string
 	Data_id     string
 	Function_id string
+	Runtime     string
 	Status      string
 	TimeStamp   time.Time
 }
@@ -23,6 +25,7 @@ type Add_Job_Struct struct {
 	Job_id      string
 	Data_id     string
 	Function_id string
+	Runtime     string
 	Error       error
 }
 
@@ -30,8 +33,14 @@ type Get_Job_Struct struct {
 	Job_id      string
 	Data_id     string
 	Function_id string
+	Runtime     string
 	Status      string
 	Error       error
+}
+
+type Delete_Job_Struct struct{
+	Job_id string
+	Error error
 }
 
 // const definition
@@ -104,9 +113,55 @@ func AccessController(arg AccessController_interface) AccessController_interface
 				return_value = add_job
 				break
 			}
-			// wip
+			add_job.Job_id = id
+
+			_, exists := Job[add_job.Job_id]
+			if !exists {
+				add_job.Error = nil
+				return_value = add_job
+
+				job_buf := new(Job_Struct)
+				job_buf.Job_id = add_job.Job_id
+				job_buf.Data_id = add_job.Data_id
+				job_buf.Function_id = add_job.Function_id
+				job_buf.Runtime = add_job.Runtime
+				job_buf.TimeStamp = time.Now()
+				job_buf.Status = "Pending"
+				Job[job_buf.Job_id] = job_buf
+
+
+				// wip
+				sched.
+				break
+			}
 		}
 	case Get_Job_Struct:
+		get_job := v
+		job_buf, exists := Job[get_job.Job_id]
+		if !exists {
+			get_job.Error = errors.New("No such Job")
+			return_value = get_job
+		} else {
+			get_job.Error = nil
+			get_job.Data_id = job_buf.Data_id
+			get_job.Function_id = job_buf.Function_id
+			get_job.Runtime = job_buf.Runtime
+			get_job.Status = job_buf.Status
+			return_value = get_job
+		}
+	case Delete_Job_Struct:
+		del_job := v
+		job_buf, exists := Job[del_job.Job_id]
+		if !exists{
+			job_buf.Error = errors.New("No such Job")	
+			return_value = del_job
+			break
+		}
+		sched.De
+	default:
+		fmt.Println("passed default (job.AccessController)")
+		return_value = nil
 	}
 	AccessMux.Unlock()
+	return return_value
 }

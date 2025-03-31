@@ -39,6 +39,11 @@ type Get_Data_Struct struct {
 	Error   error
 }
 
+type Delete_Data_Struct struct {
+	Data_id string
+	Error   error
+}
+
 // const definition
 const (
 	Data_id_Size  = 10
@@ -73,6 +78,17 @@ func GenerateDataId() (string, error) {
 	data_id += strconv.FormatUint(uint64(id_buf), 10)
 
 	return data_id, nil
+}
+
+func DataDelete(data_id string) error {
+	var delete_data Delete_Data_Struct
+	delete_data.Data_id = data_id
+	v := AccessController(delete_data)
+	if v == nil {
+		return errors.New("Returned nil interface")
+	}
+	delete_data = v.(Delete_Data_Struct)
+	return delete_data.Error
 }
 
 func DataGet(data_id string) ([]byte, error) {
@@ -205,6 +221,15 @@ func AccessController(arg AccessController_interface) AccessController_interface
 			copy(get_data.Data, data_buf.Data)
 			return_value = get_data
 		}
+	case Delete_Data_Struct:
+		delete_data := v
+		_, exists := Data[delete_data.Data_id]
+		if !exists {
+			delete_data.Error = errors.New("No such Data")
+		} else {
+			Data[delete_data.Data_id] = nil
+		}
+		return_value = delete_data
 	default:
 		fmt.Println("passed default (data.AccessController)")
 		return_value = nil

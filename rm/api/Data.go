@@ -113,6 +113,21 @@ func Data_Put(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(data_id))
 }
 
+func Data_Delete(w http.ResponseWriter, r *http.Request) {
+	data_id := r.Header.Get(DataIdHeader)
+	if data_id == "" {
+		http.Error(w, "X-Data-Id not found\n", http.StatusForbidden)
+		return
+	}
+	err := data.DataDelete(data_id)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func Data_Reg_Post(w http.ResponseWriter, r *http.Request) {
 	data_id, err := data.DataRegPost()
 	if err != nil {
@@ -132,6 +147,8 @@ func Data(w http.ResponseWriter, r *http.Request) {
 		Data_Post(w, r)
 	case http.MethodPut:
 		Data_Put(w, r)
+	case http.MethodDelete:
+		Data_Delete(w, r)
 	default:
 		http.Error(w, "Method not Allowed", http.StatusMethodNotAllowed)
 	}

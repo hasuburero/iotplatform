@@ -3,11 +3,14 @@ package worker
 import (
 	"errors"
 	"fmt"
+	"rm/job"
 	"strconv"
 	"sync"
 )
 
 type Worker_Struct struct {
+	Mux       sync.Mutex
+	Chan      chan job.Job_Struct
 	Worker_id string
 	Runtime   []string
 }
@@ -23,11 +26,30 @@ type Get_Contract_Struct struct {
 	Error       error
 }
 
+type Post_Worker_Struct struct {
+	Worker_id string
+	Runtime   []string
+	Error     error
+}
+
 type Get_Worker_Struct struct {
 	Worker_id string
+	Runtime   []string
+	Error     error
 }
 
 type Delete_Worker_Struct struct {
+	Worker_id string
+	Error     error
+}
+
+type Scheduled_Worker_Struct struct {
+	Worker_id   string
+	Job_id      string
+	Data_id     string
+	Function_id string
+	Runtime     string
+	Error       error
 }
 
 // const definition
@@ -66,6 +88,35 @@ func GenerateWorkerId() (string, error) {
 	return worker_id, nil
 }
 
+func Contract(worker_id string) (Get_Contract_Struct, error) {
+	var contract Get_Contract_Struct
+	contract.Worker_id = worker_id
+	v := AccessController(contract)
+	if v == nil {
+		return Get_Contract_Struct{}, errors.New("Returned nil interface")
+	}
+	contract.v.(Get_Contract_Struct)
+	return contract, contract.Error
+}
+
+func Scheduled(worker_id string, job job.Job_Struct) error {
+	var sched Scheduled_Worker_Struct
+	sched.Worker_id = worker_id
+	sched.Job_id = job.Job_id
+	sched.Data_id = job.Data_id
+	sched.Function_id = job.Function_id
+	sched.Runtime = job.Runtime
+	v := AccessController(sched)
+	if v == nil {
+
+	}
+
+	return nil
+}
+func WorkerDelete() error {}
+func WorkerGet() error    {}
+func WorkerPost() error   {}
+
 func AccessController(arg AccessController_interface) AccessController_interface {
 	AccessMux.Lock()
 	var return_value AccessController_interface
@@ -73,6 +124,7 @@ func AccessController(arg AccessController_interface) AccessController_interface
 	case Get_Contract_Struct:
 	case Delete_Worker_Struct:
 	case Get_Worker_Struct:
+	case POST_Worker_Struct:
 	}
 
 	AccessMux.Unlock()

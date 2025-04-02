@@ -3,7 +3,8 @@
 ### worker
 
 ```
-GET /contract
+GET worker/contract
+POST /worker
 GET /worker
 DELETE /worker
 ```

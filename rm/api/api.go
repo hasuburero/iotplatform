@@ -24,6 +24,9 @@ const (
 	DataPostError = 510
 	DataPutError = 511
 	RegDataError = 512
+
+	ContentType = "Content-Type"
+	ApplicationJson = "application/json"
 )
 
 func Start(addr, port string) {

@@ -12,7 +12,8 @@ import (
 // type definition
 type Job_Struct struct {
 	Job_id      string
-	Data_id     string
+	Data1_id     string
+	Data2_id     string
 	Function_id string
 	Runtime     string
 	Status      string
@@ -31,7 +32,8 @@ type Add_Job_Struct struct {
 
 type Get_Job_Struct struct {
 	Job_id      string
-	Data_id     string
+	Data1_id     string
+	Data2_id     string
 	Function_id string
 	Runtime     string
 	Status      string
@@ -43,8 +45,13 @@ type Delete_Job_Struct struct{
 	Error error
 }
 
-// const definition
+type Update_Job_Struct struct{
+	Job_id string
+	Status string
+	Error error
+}
 
+// const definition
 const (
 	Job_Id_Size  = 10
 	Job_Id_Limit = uint32(1024*1024*1024*4 - 1)
@@ -98,6 +105,13 @@ func GenerateJobId() (string, error) {
 	job_id += strconv.FormatUint(uint64(id_buf), 10)
 
 	return job_id, nil
+}
+
+func JobUpdate(job_id, status string)error{
+	var update Update_Job_Struct
+	update.Job_id = job_id
+	update.Status = status
+	v := AccessController(update)
 }
 
 func AccessController(arg AccessController_interface) AccessController_interface {
@@ -157,7 +171,18 @@ func AccessController(arg AccessController_interface) AccessController_interface
 			return_value = del_job
 			break
 		}
+		//wip
 		sched.De
+	case Update_Job_Struct:
+		update := v
+		job_buf, exists := Job[update.Job_id]
+		if !exists{
+			update.Error = errors.New("no such job")
+			return_value = update
+			break
+		}
+		job_buf.Status = update.Status
+		return_value = update
 	default:
 		fmt.Println("passed default (job.AccessController)")
 		return_value = nil

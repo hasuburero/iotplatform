@@ -3,8 +3,8 @@ package worker
 import (
 	"errors"
 	"fmt"
-	//"rm/job"
-	"rm/sched"
+	"rm/job"
+	"rm/job/runtime_match"
 	"strconv"
 	"sync"
 )
@@ -17,8 +17,6 @@ type Worker_Struct struct {
 
 type AccessController_interface interface {
 }
-
-type Get_Contract_Struct sched.Scheduling_Struct
 
 type Post_Worker_Struct struct {
 	Worker_id string
@@ -48,8 +46,8 @@ var AccessMux sync.Mutex
 var global_worker_id uint32 = 0
 var Worker map[string]*Worker_Struct
 
-func WorkerCopy(src *Worker_Struct) sched.Worker_Struct {
-	var worker sched.Worker_Struct
+func WorkerCopy(src *Worker_Struct) job.Worker_Struct {
+	var worker job.Worker_Struct
 	worker.Worker_id = src.Worker_id
 	worker.Runtime = make([]string, len(src.Runtime))
 	copy(worker.Runtime, src.Runtime)
@@ -81,22 +79,22 @@ func GenerateWorkerId() (string, error) {
 	return worker_id, nil
 }
 
-func Contract(worker_id string) (sched.Scheduled_Struct, error) {
-	var contract sched.Enqueue_Worker_Struct
-	contract.Chan = make(chan sched.Scheduled_Struct, 1)
+func Contract(worker_id string) (job.Scheduled_Struct, error) {
+	var contract job.Scheduling_Worker_Struct
+	contract.Chan = make(chan job.Scheduled_Struct, 1)
 	contract.Error = make(chan error, 1)
 	contract.Worker.Worker_id = worker_id
 	v := AccessController(contract)
 	if v == nil {
-		return sched.Scheduled_Struct{}, errors.New("Returned nil interface")
+		return job.Scheduled_Struct{}, errors.New("Returned nil interface")
 	}
-	contract = v.(sched.Enqueue_Worker_Struct)
+	contract = v.(job.Scheduling_Worker_Struct)
 
 	select {
 	case ch := <-contract.Chan:
 		return ch, nil
 	case err := <-contract.Error:
-		return sched.Scheduled_Struct{}, err
+		return job.Scheduled_Struct{}, err
 	}
 }
 
@@ -122,13 +120,23 @@ func WorkerGet(worker_id string) (Get_Worker_Struct, error) {
 	return worker, worker.Error
 }
 
-func WorkerPost() error {}
+func WorkerPost(runtime []string) (string, error) {
+	var worker Post_Worker_Struct
+	worker.Runtime = append(worker.Runtime, runtime...)
+	v := AccessController(worker)
+	if v == nil {
+		return "", errors.New("Returned nil interface")
+	}
+	worker = v.(Post_Worker_Struct)
+
+	return worker.Worker_id, worker.Error
+}
 
 func AccessController(arg AccessController_interface) AccessController_interface {
 	AccessMux.Lock()
 	var return_value AccessController_interface
 	switch v := arg.(type) {
-	case sched.Enqueue_Worker_Struct:
+	case job.Enqueue_Worker_Struct:
 		get_contract := v
 		worker, exists := Worker[get_contract.Worker.Worker_id]
 		if !exists {
@@ -138,7 +146,7 @@ func AccessController(arg AccessController_interface) AccessController_interface
 		}
 
 		get_contract.Worker = WorkerCopy(worker)
-		sched.WorkerEnqueue(get_contract)
+		job.EnqueueWorker(get_contract)
 
 		return_value = get_contract
 	case Delete_Worker_Struct:

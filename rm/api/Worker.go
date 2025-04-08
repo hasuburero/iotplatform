@@ -1,14 +1,12 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
-	"mime/multipart"
 	"net/http"
-	"rm/job"
 	"rm/sched"
 	"rm/worker"
+	"time"
 )
 
 type Get_Contract_Struct struct {
@@ -20,16 +18,24 @@ type Get_Contract_Struct struct {
 	Runtime     string `json:"runtime"`
 }
 
-type Get_Worker_Struct struct {
+type Get_Worker_Res_Struct struct {
+	Worker_id string   `json:"worker_id"`
+	Runtime   []string `json:"runtime"`
+}
+
+type Post_Worker_Struct struct {
+	Runtime []string `json:"runtime"`
+}
+
+type Post_Worker_Res_Struct struct {
 	Worker_id string   `json:"worker_id"`
 	Runtime   []string `json:"runtime"`
 }
 
 const (
 	WorkerIdHeader = "X-Worker-Id"
+	timeout        = 5
 )
-
-var Runtime []string
 
 func Worker_Get(w http.ResponseWriter, r *http.Request) {
 	worker_id := r.Header.Get(WorkerIdHeader)
@@ -38,9 +44,50 @@ func Worker_Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	worker, err := worker.WorkerGet(worker_id)
+	ctx, err := worker.WorkerGet(worker_id)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
 
-	json_buf, err := json.Marshal()
+	var response Get_Worker_Res_Struct
+	response.Worker_id = ctx.Worker_id
+	response.Runtime = make([]string, len(ctx.Runtime))
+	copy(response.Runtime, ctx.Runtime)
+
+	json_buf, err := json.Marshal(response)
+	w.Header().Set(ContentType, ApplicationJson)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json_buf)
+}
+
+func Worker_Post(w http.ResponseWriter, r *http.Request) {
+	buf, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
+	defer r.Body.Close()
+
+	var ctx Post_Worker_Struct
+	err = json.Unmarshal(buf, &ctx)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
+
+	var res Post_Worker_Res_Struct
+	res.Worker_id, err = worker.WorkerPost(ctx.Runtime)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
+	res.Runtime = append(res.Runtime, ctx.Runtime...)
+	json_buf, err := json.Marshal(res)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
 	w.Header().Set(ContentType, ApplicationJson)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json_buf)
@@ -62,6 +109,7 @@ func Worker_Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func Worker_Contract_Get(w http.ResponseWriter, r *http.Request) {
+	notify := w.(http.CloseNotifier).CloseNotify()
 	worker_id := r.Header.Get(WorkerIdHeader)
 	if worker_id == "" {
 		http.Error(w, "X-Worker-Id not found\n", http.StatusForbidden)
@@ -90,12 +138,22 @@ func Worker_Contract_Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(ContentType, ApplicationJson)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json_buf)
+
+	go func() {
+		select {
+		case <-notify:
+			sched.Retry(get_contract.Job_id)
+		case <-time.After(timeout * time.Second):
+		}
+	}()
 }
 
 func Worker(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		Worker_Get(w, r)
+	case http.MethodPost:
+		Worker_Post(w, r)
 	case http.MethodDelete:
 		Worker_Delete(w, r)
 	}

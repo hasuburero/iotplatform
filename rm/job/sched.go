@@ -1,6 +1,9 @@
 package job
 
-import ()
+import (
+	"errors"
+	"sync"
+)
 
 type Worker_Struct struct {
 	Worker_id string
@@ -33,7 +36,8 @@ var AssignedPair map[string]*Scheduled_Struct
 var EnqueueWorkerChan chan *Scheduling_Worker_Struct
 var EnqueueJobChan chan *Job_Struct
 var ReadChan chan Read_Struct
-var RetryChan chan string
+var RetryChan chan *Job_Struct
+var PairMux sync.Mutex
 
 func Read() (Scheduling_Worker_Struct, Job_Struct) {
 	pair := <-ReadChan
@@ -55,7 +59,18 @@ func EnqueueJob(job Job_Struct) {
 }
 
 func Retry(job Job_Struct) error {
+	PairMux.Lock()
+	pair, exists := AssignedPair[job.Job_id]
+	if !exists {
+		return errors.New("no such job")
+	}
 
+	job_buf := new(Job_Struct)
+	*job_buf = job
+	RetryChan <- job_buf
+	PairMux.Unlock()
+
+	return nil
 }
 
 func Matching() {
@@ -78,7 +93,9 @@ func Matching() {
 		pair := new(Scheduled_Struct)
 		pair.Worker = worker_target.Worker
 		pair.Job = *job_target
+		PairMux.Lock()
 		AssignedPair[pair.Job.Job_id] = pair
+		PairMux.Unlock()
 		ReadChan <- Read_Struct{Worker: *worker_target, Job: *job_target}
 	}
 
@@ -107,6 +124,11 @@ func SelectWithDefault() {
 func Scheduling() {
 	go func() {
 		for {
+			select {
+			case job := <-RetryChan:
+				JobQueue = append([]*Job_Struct(job), JobQueue...)
+			default:
+			}
 			if len(WorkerQueue) > 0 && len(JobQueue) > 0 {
 				SelectWithDefault()
 			} else {
@@ -135,6 +157,7 @@ func Start() {
 	EnqueueWorkerChan = make(chan *Scheduling_Worker_Struct)
 	EnqueueJobChan = make(chan *Job_Struct)
 	ReadChan = make(chan Read_Struct, 10)
+	RetryChan = make(chan *Job_Struct, 10)
 
 	Scheduling()
 	Reader()

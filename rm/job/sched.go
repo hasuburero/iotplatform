@@ -120,9 +120,12 @@ func Reader() {
 	go func() {
 		for {
 			target, job := Read()
-			//wip
-			JobUpdate(job.Job_id)
-			target.Chan <- Scheduled_Struct{Worker: target.Worker, Job: job}
+			err := JobUpdate(job.Job_id, Processing)
+			if err != nil {
+				target.Error <- err
+			} else {
+				target.Chan <- Scheduled_Struct{Worker: target.Worker, Job: job}
+			}
 		}
 	}()
 }

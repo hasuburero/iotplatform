@@ -12,8 +12,8 @@ import (
 // type definition
 type Job_Struct struct {
 	Job_id      string
-	Data1_id     string
-	Data2_id     string
+	Data1_id    string
+	Data2_id    string
 	Function_id string
 	Runtime     string
 	Status      string
@@ -32,23 +32,23 @@ type Add_Job_Struct struct {
 
 type Get_Job_Struct struct {
 	Job_id      string
-	Data1_id     string
-	Data2_id     string
+	Data1_id    string
+	Data2_id    string
 	Function_id string
 	Runtime     string
 	Status      string
 	Error       error
 }
 
-type Delete_Job_Struct struct{
+type Delete_Job_Struct struct {
 	Job_id string
-	Error error
+	Error  error
 }
 
-type Update_Job_Struct struct{
+type Update_Job_Struct struct {
 	Job_id string
 	Status string
-	Error error
+	Error  error
 }
 
 // const definition
@@ -58,9 +58,9 @@ const (
 )
 
 const (
-	Finished = "Finished"
-	Running  = "Running"
-	Pending  = "Pending"
+	Finished   = "Finished"
+	Processing = "Processing"
+	Pending    = "Pending"
 )
 
 // var definition
@@ -107,11 +107,16 @@ func GenerateJobId() (string, error) {
 	return job_id, nil
 }
 
-func JobUpdate(job_id, status string)error{
+func JobUpdate(job_id, status string) error {
 	var update Update_Job_Struct
 	update.Job_id = job_id
 	update.Status = status
 	v := AccessController(update)
+	if v == nil {
+		return errors.New("Returned nil interface")
+	}
+	update = v.(Update_Job_Struct)
+	return update.Error
 }
 
 func AccessController(arg AccessController_interface) AccessController_interface {
@@ -140,12 +145,11 @@ func AccessController(arg AccessController_interface) AccessController_interface
 				job_buf.Function_id = add_job.Function_id
 				job_buf.Runtime = add_job.Runtime
 				job_buf.TimeStamp = time.Now()
-				job_buf.Status = "Pending"
+				job_buf.Status = Pending
 				Job[job_buf.Job_id] = job_buf
 
-
 				// wip
-				sched.
+				EnqueueJob(*job_buf)
 				break
 			}
 		}
@@ -157,7 +161,8 @@ func AccessController(arg AccessController_interface) AccessController_interface
 			return_value = get_job
 		} else {
 			get_job.Error = nil
-			get_job.Data_id = job_buf.Data_id
+			get_job.Data1_id = job_buf.Data1_id
+			get_job.Data2_id = job_buf.Data2_id
 			get_job.Function_id = job_buf.Function_id
 			get_job.Runtime = job_buf.Runtime
 			get_job.Status = job_buf.Status
@@ -166,8 +171,8 @@ func AccessController(arg AccessController_interface) AccessController_interface
 	case Delete_Job_Struct:
 		del_job := v
 		job_buf, exists := Job[del_job.Job_id]
-		if !exists{
-			job_buf.Error = errors.New("No such Job")	
+		if !exists {
+			del_job.Error = errors.New("No such Job")
 			return_value = del_job
 			break
 		}
@@ -176,12 +181,40 @@ func AccessController(arg AccessController_interface) AccessController_interface
 	case Update_Job_Struct:
 		update := v
 		job_buf, exists := Job[update.Job_id]
-		if !exists{
+		if !exists {
 			update.Error = errors.New("no such job")
 			return_value = update
 			break
 		}
-		job_buf.Status = update.Status
+
+		switch update.Status {
+		case Finished:
+			switch job_buf.Status {
+			case Processing:
+				job_buf.Status = update.Status
+			case Finished:
+				fallthrough
+			case Pending:
+				fallthrough
+			default:
+				update.Error = errors.New("Invalid Status Transition")
+			}
+		case Processing:
+			switch job_buf.Status {
+			case Pending:
+				job_buf.Status = update.Status
+			case Finished:
+				fallthrough
+			case Processing:
+				fallthrough
+			default:
+				update.Error = errors.New("Invalid Status Transition")
+			}
+		case Pending:
+			update.Error = errors.New("Invalid Status Transition")
+		default:
+			update.Error = errors.New("no such status")
+		}
 		return_value = update
 	default:
 		fmt.Println("passed default (job.AccessController)")

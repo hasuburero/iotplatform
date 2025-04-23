@@ -63,11 +63,12 @@ func EnqueueJob(job Job_Struct) {
 
 func Retry(job Job_Struct) error {
 	PairMux.Lock()
-	pair, exists := AssignedPair[job.Job_id]
+	_, exists := AssignedPair[job.Job_id]
 	if !exists {
 		return errors.New("no such job")
 	}
 
+	AssignedPair[job.Job_id] = nil
 	job_buf := new(Job_Struct)
 	*job_buf = job
 	RetryChan <- job_buf
@@ -113,6 +114,7 @@ func Select() {
 		JobQueue = append(JobQueue, job)
 	}
 }
+
 func SelectWithDefault() {
 	select {
 	case worker := <-EnqueueWorkerChan:
@@ -129,7 +131,11 @@ func Scheduling() {
 		for {
 			select {
 			case job := <-RetryChan:
-				JobQueue = append([]*Job_Struct(job), JobQueue...)
+				buf := make([]*Job_Struct, len(JobQueue))
+				copy(buf, JobQueue)
+				JobQueue = append(JobQueue[:0], job)
+				JobQueue = append(JobQueue, buf...)
+				buf = nil
 			default:
 			}
 			if len(WorkerQueue) > 0 && len(JobQueue) > 0 {

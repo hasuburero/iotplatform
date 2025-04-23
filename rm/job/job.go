@@ -177,7 +177,7 @@ func AccessController(arg AccessController_interface) AccessController_interface
 			break
 		}
 		//wip
-		sched.De
+		Delete()
 	case Update_Job_Struct:
 		update := v
 		job_buf, exists := Job[update.Job_id]

@@ -21,6 +21,9 @@ type Scheduling_Worker_Struct struct {
 	Error  chan error
 }
 
+type Job_Delete_Struct struct {
+}
+
 type Enqueue_Worker_Struct Scheduling_Worker_Struct
 
 type Enqueue_Job_Struct Job_Struct

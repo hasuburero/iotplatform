@@ -2,9 +2,7 @@ package worker
 
 import (
 	"errors"
-	"fmt"
 	"rm/job"
-	"rm/job/runtime_match"
 	"strconv"
 	"sync"
 )
@@ -92,6 +90,10 @@ func Contract(worker_id string) (job.Scheduled_Struct, error) {
 
 	select {
 	case ch := <-contract.Chan:
+		err := job.Check(ch.Job.Job_id)
+		if err != nil {
+			return job.Scheduled_Struct{}, err
+		}
 		return ch, nil
 	case err := <-contract.Error:
 		return job.Scheduled_Struct{}, err

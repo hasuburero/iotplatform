@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"rm/sched"
+	"rm/job"
 	"rm/worker"
 	"time"
 )
@@ -142,7 +142,7 @@ func Worker_Contract_Get(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		select {
 		case <-notify:
-			sched.Retry(get_contract.Job_id)
+			job.RetryJob(contract.Job)
 		case <-time.After(timeout * time.Second):
 		}
 	}()

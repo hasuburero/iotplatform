@@ -55,6 +55,9 @@ var AccessMux sync.Mutex
 var global_data_id uint32 = 0
 var Data map[string]*Data_Struct
 
+/*
+Generate Unique id
+*/
 func GenerateDataId() (string, error) {
 	var zeronum int = 0
 	var prefix uint32 = 10
@@ -80,6 +83,9 @@ func GenerateDataId() (string, error) {
 	return data_id, nil
 }
 
+/*
+Delete Data
+*/
 func DataDelete(data_id string) error {
 	var delete_data Delete_Data_Struct
 	delete_data.Data_id = data_id
@@ -91,6 +97,9 @@ func DataDelete(data_id string) error {
 	return delete_data.Error
 }
 
+/*
+Return data []byte
+*/
 func DataGet(data_id string) ([]byte, error) {
 	var get_data Get_Data_Struct
 	get_data.Data_id = data_id
@@ -106,6 +115,9 @@ func DataGet(data_id string) ([]byte, error) {
 	return get_data.Data, nil
 }
 
+/*
+Register data and store data
+*/
 func DataAdd(arg []byte) (string, error) {
 	var post_data Add_Data_Struct
 	post_data.Data = arg
@@ -121,6 +133,9 @@ func DataAdd(arg []byte) (string, error) {
 	return post_data.Data_id, nil
 }
 
+/*
+Set data
+*/
 func DataPut(data_id string, arg []byte) error {
 	var put_data Put_Data_Struct
 	put_data.Data_id = data_id
@@ -133,6 +148,9 @@ func DataPut(data_id string, arg []byte) error {
 	return put_data.Error
 }
 
+/*
+only register data_id
+*/
 func DataRegPost() (string, error) {
 	var reg_data Reg_Data_Struct
 	v := AccessController(reg_data)
@@ -227,7 +245,7 @@ func AccessController(arg AccessController_interface) AccessController_interface
 		if !exists {
 			delete_data.Error = errors.New("No such Data")
 		} else {
-			Data[delete_data.Data_id] = nil
+			delete(Data, delete_data.Data_id)
 		}
 		return_value = delete_data
 	default:

@@ -3,7 +3,7 @@ package job
 import (
 	"errors"
 	"fmt"
-	"rm/sched"
+	"rm/data"
 	"strconv"
 	"sync"
 	"time"
@@ -24,9 +24,11 @@ type AccessController_interface interface{}
 
 type Add_Job_Struct struct {
 	Job_id      string
-	Data_id     string
+	Data1_id    string
+	Data2_id    string
 	Function_id string
 	Runtime     string
+	Timestamp   time.Time
 	Error       error
 }
 
@@ -37,7 +39,13 @@ type Get_Job_Struct struct {
 	Function_id string
 	Runtime     string
 	Status      string
+	Timestamp   time.Time
 	Error       error
+}
+
+type Check_Struct struct {
+	Job_id string
+	Error  error
 }
 
 type Delete_Job_Struct struct {
@@ -75,7 +83,7 @@ func init() {
 	StatusMap = make(map[string]int8)
 	RevStatusMap = make(map[int8]string)
 	StatusMap[Pending] = 1
-	StatusMap[Running] = 2
+	StatusMap[Processing] = 2
 	StatusMap[Finished] = 3
 	for key, value := range StatusMap {
 		RevStatusMap[value] = key
@@ -107,6 +115,16 @@ func GenerateJobId() (string, error) {
 	return job_id, nil
 }
 
+func Check(job_id string) error {
+	var check Check_Struct
+	check.Job_id = job_id
+	v := AccessController(check)
+	if v == nil {
+		return errors.New("Returned nil interface")
+	}
+	return check.Error
+}
+
 func JobUpdate(job_id, status string) error {
 	var update Update_Job_Struct
 	update.Job_id = job_id
@@ -117,6 +135,43 @@ func JobUpdate(job_id, status string) error {
 	}
 	update = v.(Update_Job_Struct)
 	return update.Error
+}
+
+func AddJob(data1_id, function_id, runtime string, ts time.Time) (string, error) {
+	data2_id, err := data.DataRegPost()
+	if err != nil {
+		return "", err
+	}
+
+	var add_job Add_Job_Struct
+	add_job.Data1_id = data1_id
+	add_job.Data2_id = data2_id
+	add_job.Function_id = function_id
+	add_job.Runtime = runtime
+	add_job.Timestamp = ts
+	v := AccessController(add_job)
+	if v == nil {
+		return "", errors.New("Returned nil interface")
+	}
+
+	add_job = v.(Add_Job_Struct)
+	return add_job.Job_id, add_job.Error
+}
+
+func JobDelete(job_id string) error {
+	var del_job Delete_Job_Struct
+	del_job.Job_id = job_id
+	v := AccessController(del_job)
+	if v == nil {
+		return errors.New("Returned nil interface")
+	}
+	del_job = v.(Delete_Job_Struct)
+	if del_job.Error != nil {
+		return del_job.Error
+	}
+
+	err := DeletePair(del_job.Job_id)
+	return err
 }
 
 func AccessController(arg AccessController_interface) AccessController_interface {
@@ -134,29 +189,29 @@ func AccessController(arg AccessController_interface) AccessController_interface
 			}
 			add_job.Job_id = id
 
-			_, exists := Job[add_job.Job_id]
-			if !exists {
+			job := Job[add_job.Job_id]
+			if job == nil {
 				add_job.Error = nil
 				return_value = add_job
 
 				job_buf := new(Job_Struct)
 				job_buf.Job_id = add_job.Job_id
-				job_buf.Data_id = add_job.Data_id
+				job_buf.Data1_id = add_job.Data1_id
+				job_buf.Data2_id = add_job.Data2_id
 				job_buf.Function_id = add_job.Function_id
 				job_buf.Runtime = add_job.Runtime
 				job_buf.TimeStamp = time.Now()
 				job_buf.Status = Pending
 				Job[job_buf.Job_id] = job_buf
 
-				// wip
 				EnqueueJob(*job_buf)
 				break
 			}
 		}
 	case Get_Job_Struct:
 		get_job := v
-		job_buf, exists := Job[get_job.Job_id]
-		if !exists {
+		job_buf := Job[get_job.Job_id]
+		if job_buf == nil {
 			get_job.Error = errors.New("No such Job")
 			return_value = get_job
 		} else {
@@ -170,18 +225,19 @@ func AccessController(arg AccessController_interface) AccessController_interface
 		}
 	case Delete_Job_Struct:
 		del_job := v
-		job_buf, exists := Job[del_job.Job_id]
+		_, exists := Job[del_job.Job_id]
 		if !exists {
 			del_job.Error = errors.New("No such Job")
 			return_value = del_job
 			break
 		}
 		//wip
-		Delete()
+		delete(Job, del_job.Job_id)
+		DeletePair(del_job.Job_id)
 	case Update_Job_Struct:
 		update := v
-		job_buf, exists := Job[update.Job_id]
-		if !exists {
+		job_buf := Job[update.Job_id]
+		if job_buf == nil {
 			update.Error = errors.New("no such job")
 			return_value = update
 			break

@@ -15,6 +15,11 @@ type Scheduled_Struct struct {
 	Job    Job_Struct
 }
 
+type Assigned_Struct struct {
+	Worker Scheduling_Worker_Struct
+	Job    Job_Struct
+}
+
 type Scheduling_Worker_Struct struct {
 	Worker Worker_Struct
 	Chan   chan Scheduled_Struct
@@ -22,6 +27,8 @@ type Scheduling_Worker_Struct struct {
 }
 
 type Job_Delete_Struct struct {
+	Job_id string
+	Error  chan error
 }
 
 type Enqueue_Worker_Struct Scheduling_Worker_Struct
@@ -35,11 +42,15 @@ type Read_Struct struct {
 
 var WorkerQueue []*Scheduling_Worker_Struct
 var JobQueue []*Job_Struct
-var AssignedPair map[string]*Scheduled_Struct
+var AssignedPair map[string]*Assigned_Struct
+
 var EnqueueWorkerChan chan *Scheduling_Worker_Struct
 var EnqueueJobChan chan *Job_Struct
 var ReadChan chan Read_Struct
-var RetryChan chan *Job_Struct
+var RetryJobChan chan *Job_Struct
+var RetryWorkerChan chan *Scheduling_Worker_Struct
+var DeleteChan chan Job_Delete_Struct
+
 var PairMux sync.Mutex
 
 func Read() (Scheduling_Worker_Struct, Job_Struct) {
@@ -61,19 +72,47 @@ func EnqueueJob(job Job_Struct) {
 	EnqueueJobChan <- new_job
 }
 
-func Retry(job Job_Struct) error {
+func DeletePair(job_id string) error {
 	PairMux.Lock()
-	_, exists := AssignedPair[job.Job_id]
-	if !exists {
-		return errors.New("no such job")
+	ctx, _ := AssignedPair[job_id]
+	if ctx == nil {
+		return errors.New("")
 	}
-
-	AssignedPair[job.Job_id] = nil
-	job_buf := new(Job_Struct)
-	*job_buf = job
-	RetryChan <- job_buf
+	delete(AssignedPair, job_id)
 	PairMux.Unlock()
 
+	return nil
+}
+
+func RetryJob(job Job_Struct) error {
+	PairMux.Lock()
+	ctx, _ := AssignedPair[job.Job_id]
+	if ctx == nil {
+		return errors.New("no such job")
+	}
+	AssignedPair[job.Job_id] = nil
+	PairMux.Unlock()
+
+	job_buf := new(Job_Struct)
+	*job_buf = job
+	RetryJobChan <- job_buf
+
+	return nil
+}
+
+func RetryWorker(job_id string) error {
+	PairMux.Lock()
+	pair, exists := AssignedPair[job_id]
+	if !exists {
+		return errors.New("no such pair")
+	}
+	worker := new(Scheduling_Worker_Struct)
+	worker.Worker = pair.Worker.Worker
+	worker.Chan = pair.Worker.Chan
+	worker.Error = pair.Worker.Error
+	PairMux.Unlock()
+
+	RetryWorkerChan <- worker
 	return nil
 }
 
@@ -94,8 +133,8 @@ func Matching() {
 	if index == -1 {
 		JobQueue = append(JobQueue, job_target)
 	} else {
-		pair := new(Scheduled_Struct)
-		pair.Worker = worker_target.Worker
+		pair := new(Assigned_Struct)
+		pair.Worker = *worker_target
 		pair.Job = *job_target
 		PairMux.Lock()
 		AssignedPair[pair.Job.Job_id] = pair
@@ -129,12 +168,18 @@ func SelectWithDefault() {
 func Scheduling() {
 	go func() {
 		for {
+			// receiving retry, delete channel
 			select {
-			case job := <-RetryChan:
+			case job := <-RetryJobChan:
 				buf := make([]*Job_Struct, len(JobQueue))
 				copy(buf, JobQueue)
 				JobQueue = append(JobQueue[:0], job)
 				JobQueue = append(JobQueue, buf...)
+				buf = nil
+			case worker := <-RetryWorkerChan:
+				buf := make([]*Scheduling_Worker_Struct, len(WorkerQueue))
+				WorkerQueue = append(WorkerQueue[:0], worker)
+				WorkerQueue = append(WorkerQueue, buf...)
 				buf = nil
 			default:
 			}
@@ -162,11 +207,12 @@ func Reader() {
 }
 
 func Start() {
-	AssignedPair = make(map[string]*Scheduled_Struct)
-	EnqueueWorkerChan = make(chan *Scheduling_Worker_Struct)
-	EnqueueJobChan = make(chan *Job_Struct)
+	AssignedPair = make(map[string]*Assigned_Struct)
+	EnqueueWorkerChan = make(chan *Scheduling_Worker_Struct, 10)
+	EnqueueJobChan = make(chan *Job_Struct, 10)
 	ReadChan = make(chan Read_Struct, 10)
-	RetryChan = make(chan *Job_Struct, 10)
+	RetryJobChan = make(chan *Job_Struct, 10)
+	RetryWorkerChan = make(chan *Scheduling_Worker_Struct, 10)
 
 	Scheduling()
 	Reader()

@@ -137,6 +137,9 @@ func JobUpdate(job_id, status string) error {
 	return update.Error
 }
 
+// wip
+func GetJob() {}
+
 func AddJob(data1_id, function_id, runtime string, ts time.Time) (string, error) {
 	data2_id, err := data.DataRegPost()
 	if err != nil {

@@ -1,23 +1,32 @@
-## api package
+# api package
 
-### worker
+## worker
 
 ```
-GET worker/contract
+GET /worker/contract
 POST /worker
 GET /worker
 DELETE /worker
 ```
 
-GET /worker/contract
+### GET /worker/contract
+
+request
 
 ```
+X-Worker_Id: xxxxxxxx // 8 bytes?
 application/json
+
 {
   worker_id string
 }
+```
 
+response
+
+```
 application/json
+
 {
   worker_id string
   job_id string
@@ -28,37 +37,125 @@ application/json
 }
 ```
 
-POST /worker
+### POST /worker
+
+request
 
 ```
-application/plane ?
-{
-}
-
 application/json
+
+{
+  Runtime []string
+}
+```
+
+response
+
+```
+application/json
+
 {
   worker_id string
 }
 ```
 
-GET /worker
+### GET /worker
+
+request
 
 ```
 application/json
+
 {
   worker_id string
 }
 
+```
+
+response
+
+```
 application/json
+
 {
   worker_id string
   Runtime []string
 }
 ```
 
-### job
+## Job
 
-### data
+```
+GET /job
+POST /job
+DELETE /job
+```
+
+### GET /job
+
+request
+
+```
+X-Job-Id: xxxxxxxx // 8 bytes?
+
+no contents
+```
+
+response
+
+```
+application/json
+
+{
+  job_id string
+  data1_id string
+  data2_id string
+  function_id string
+  runtime string
+}
+```
+
+### POST /job
+
+request
+
+```
+application/json
+
+{
+  data_id string
+  function_id string
+  runtime string
+}
+```
+
+response
+
+```
+application/json
+
+{
+  job_id string
+}
+```
+
+## DELETE /job
+
+request
+
+```
+X-Job-Id: xxxxxxxx // 8 bytes?
+
+no content
+```
+
+response
+
+```
+no content
+```
+
+## Data
 
 ```
 POST /data/reg

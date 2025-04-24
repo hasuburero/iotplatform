@@ -9,26 +9,41 @@ const (
 	rootpath      = "/"
 	mecrmrootpath = "/mecrm"
 	workerpath    = mecrmrootpath + "/worker"
+	contractpath  = workerpath + "/contract"
 	jobpath       = mecrmrootpath + "/job"
 	datapath      = mecrmrootpath + "/data"
+	regpath       = datapath + "/reg"
 
 	defaultport = "8080"
 )
 
 const (
-	MaxDataSize = 16*1024*1024
-	CreateFormFileError = 505
-	ParseMultipartFormError = 506
-	FormFileError = 507
-	ReadAllError = 508
-	DataPostError = 510
-	DataPutError = 511
-	RegDataError = 512
+	readmepath = "github.com/hasuburero/mecrm/rm"
+)
 
-	ContentType = "Content-Type"
+const (
+	MaxDataSize             = 16 * 1024 * 1024
+	CreateFormFileError     = 505
+	ParseMultipartFormError = 506
+	FormFileError           = 507
+	ReadAllError            = 508
+	DataPostError           = 510
+	DataPutError            = 511
+	RegDataError            = 512
+
+	ContentType     = "Content-Type"
 	ApplicationJson = "application/json"
 )
 
+func Root(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Hello World!!\n"))
+}
+
+func MecrmRoot(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(readmepath))
+}
 func Start(addr, port string) {
 	if port == "" {
 		port = defaultport
@@ -36,10 +51,13 @@ func Start(addr, port string) {
 	server := http.Server{
 		Addr: addr + ":" + port,
 	}
-	http.HandleFunc(rootpath, )
-	http.HandleFunc(datapath+, )
-	http.HandleFunc(workerpath+, )
-	http.HandleFunc(jobpath+, )
+	http.HandleFunc(rootpath, Root)
+	http.HandleFunc(mecrmrootpath, MecrmRoot)
+	http.HandleFunc(workerpath, Worker)
+	http.HandleFunc(contractpath, Worker_Contract_Get)
+	http.HandleFunc(jobpath)
+	http.HandleFunc(datapath, Data)
+	http.HandleFunc(regpath, Data_Reg_Post)
 
 	go func() {
 		err := server.ListenAndServe()

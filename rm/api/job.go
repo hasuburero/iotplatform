@@ -8,20 +8,61 @@ import (
 	"net/http"
 	"rm/data"
 	"rm/job"
+	"time"
 )
 
 const (
 	JobIdHeader = "X-Job-Id"
 )
 
-func Job_Get(w http.ResponseWriter, r *http.Request) {}
+type Get_Job_Request struct {
+}
+type Get_Job_Resonse struct {
+}
+
+type Post_Job_Request struct {
+	Data_id     string `json:"data_id"`
+	Function_id string `json:"function_id"`
+	Runtime     string `json:"runtime"`
+}
+type Post_Job_Response struct {
+	Job_id string `json:"job_id"`
+}
+
+func Job_Get(w http.ResponseWriter, r *http.Request) {
+	job_id := r.Header.Get(JobIdHeader)
+	if job_id == "" {
+		http.Error(w, JobIdHeader+" not found\n", http.Status)
+	}
+}
+
 func Job_Post(w http.ResponseWriter, r *http.Request) {
-	var job job.Add_Job_Struct
+	ts := time.Now()
+	var job_buf Post_Job_Request
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "")
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
 	}
-	err := json.Unmarshal()
+	defer r.Body.Close()
+
+	err = json.Unmarshal(body, &job_buf)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
+
+	job_id, err := job.AddJob(job_buf.Data_id, job_buf.Function_id, job_buf.Runtime, ts)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
+
+	var ctx Post_Job_Response
+	ctx.Job_id = job_id
+	body, err = json.Marshal(ctx)
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func Job_Delete(w http.ResponseWriter, r *http.Request) {

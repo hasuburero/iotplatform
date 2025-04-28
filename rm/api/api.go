@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+type StatusDef struct {
+	Code    int
+	Message string
+}
+
 const (
 	rootpath      = "/"
 	mecrmrootpath = "/mecrm"
@@ -21,15 +26,17 @@ const (
 	readmepath = "github.com/hasuburero/mecrm/rm"
 )
 
+const test = StatusDef{Code: 1, Message: "lsdkfj"}
 const (
 	MaxDataSize             = 16 * 1024 * 1024
-	CreateFormFileError     = 505
-	ParseMultipartFormError = 506
-	FormFileError           = 507
-	ReadAllError            = 508
-	DataPostError           = 510
-	DataPutError            = 511
-	RegDataError            = 512
+	HeaderNotFoundError     = StatusDef{Code: 900, Message: JobIdHeader + " not found\n"}
+	CreateFormFileError     = 905
+	ParseMultipartFormError = 906
+	FormFileError           = 907
+	ReadAllError            = 908
+	DataPostError           = 910
+	DataPutError            = 911
+	RegDataError            = 912
 
 	ContentType     = "Content-Type"
 	ApplicationJson = "application/json"

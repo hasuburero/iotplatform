@@ -10,6 +10,8 @@ import (
 )
 
 // type definition
+type AccessController_interface interface{}
+
 type Job_Struct struct {
 	Job_id      string
 	Data1_id    string
@@ -19,8 +21,6 @@ type Job_Struct struct {
 	Status      string
 	TimeStamp   time.Time
 }
-
-type AccessController_interface interface{}
 
 type Add_Job_Struct struct {
 	Job_id      string
@@ -138,7 +138,16 @@ func JobUpdate(job_id, status string) error {
 }
 
 // wip
-func GetJob() {}
+func GetJob(job_id string) (Get_Job_Struct, error) {
+	var get_job Get_Job_Struct
+	get_job.Job_id = job_id
+	v := AccessController(get_job)
+	if v == nil {
+		return Get_Job_Struct{}, errors.New("Returned nil interface\n")
+	}
+	get_job = v.(Get_Job_Struct)
+	return get_job, get_job.Error
+}
 
 func AddJob(data1_id, function_id, runtime string, ts time.Time) (string, error) {
 	data2_id, err := data.DataRegPost()
@@ -234,7 +243,7 @@ func AccessController(arg AccessController_interface) AccessController_interface
 			return_value = del_job
 			break
 		}
-		//wip
+
 		delete(Job, del_job.Job_id)
 		DeletePair(del_job.Job_id)
 	case Update_Job_Struct:

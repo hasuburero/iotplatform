@@ -1,23 +1,20 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
-	"mime/multipart"
 	"net/http"
-	"rm/data"
 	"rm/job"
 	"time"
 )
 
-const (
-	JobIdHeader = "X-Job-Id"
-)
-
-type Get_Job_Request struct {
-}
-type Get_Job_Resonse struct {
+type Get_Job_Response struct {
+	Job_id      string `json:"job_id"`
+	Data1_id    string `json:"data1_id"`
+	Data2_id    string `json:"data2_id"`
+	Function_id string `json:"function_id"`
+	Runtime     string `json:"runtime"`
+	Status      string `json:"status"`
 }
 
 type Post_Job_Request struct {
@@ -32,8 +29,32 @@ type Post_Job_Response struct {
 func Job_Get(w http.ResponseWriter, r *http.Request) {
 	job_id := r.Header.Get(JobIdHeader)
 	if job_id == "" {
-		http.Error(w, JobIdHeader+" not found\n", http.Status)
+		http.Error(w, JobIdHeaderNotFoundError.Message, JobIdHeaderNotFoundError.Code)
+		return
 	}
+
+	ctx, err := job.GetJob(job_id)
+	if err != nil {
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		return
+	}
+
+	var res_buf Get_Job_Response
+	res_buf.Job_id = ctx.Job_id
+	res_buf.Data1_id = ctx.Data1_id
+	res_buf.Data2_id = ctx.Data2_id
+	res_buf.Function_id = ctx.Function_id
+	res_buf.Runtime = ctx.Runtime
+	res_buf.Status = ctx.Status
+	res, err := json.Marshal(res_buf)
+	if err != nil {
+		http.Error(w, JsonMarshalError.Message, JsonMarshalError.Code)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+	return
 }
 
 func Job_Post(w http.ResponseWriter, r *http.Request) {
@@ -41,14 +62,14 @@ func Job_Post(w http.ResponseWriter, r *http.Request) {
 	var job_buf Post_Job_Request
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		http.Error(w, ReadAllError.Message, ReadAllError.Code)
 		return
 	}
 	defer r.Body.Close()
 
 	err = json.Unmarshal(body, &job_buf)
 	if err != nil {
-		http.Error(w, err.Error()+"\n", http.StatusForbidden)
+		http.Error(w, JsonUnmarshalError.Message, JsonMarshalError.Code)
 		return
 	}
 
@@ -61,24 +82,31 @@ func Job_Post(w http.ResponseWriter, r *http.Request) {
 	var ctx Post_Job_Response
 	ctx.Job_id = job_id
 	body, err = json.Marshal(ctx)
+	if err != nil {
+		http.Error(w, JsonMarshalError.Message, JsonMarshalError.Code)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+	return
 }
 
 func Job_Delete(w http.ResponseWriter, r *http.Request) {
 	job_id := r.Header.Get(JobIdHeader)
 	if job_id == "" {
-		http.Error(w, JobIdHeader+" not found\n", http.StatusForbidden)
+		http.Error(w, JobIdHeaderNotFoundError.Message, JobIdHeaderNotFoundError.Code)
 		return
 	}
 
 	err := job.JobDelete(job_id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		http.Error(w, err.Error()+"\n", http.StatusForbidden)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+	return
 }
 
 func Job(w http.ResponseWriter, r *http.Request) {

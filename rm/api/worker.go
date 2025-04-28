@@ -33,8 +33,7 @@ type Post_Worker_Res_Struct struct {
 }
 
 const (
-	WorkerIdHeader = "X-Worker-Id"
-	timeout        = 5
+	timeout = 5
 )
 
 func Worker_Get(w http.ResponseWriter, r *http.Request) {

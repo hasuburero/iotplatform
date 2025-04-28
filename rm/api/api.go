@@ -26,20 +26,28 @@ const (
 	readmepath = "github.com/hasuburero/mecrm/rm"
 )
 
-const test = StatusDef{Code: 1, Message: "lsdkfj"}
 const (
-	MaxDataSize             = 16 * 1024 * 1024
-	HeaderNotFoundError     = StatusDef{Code: 900, Message: JobIdHeader + " not found\n"}
-	CreateFormFileError     = 905
-	ParseMultipartFormError = 906
-	FormFileError           = 907
-	ReadAllError            = 908
-	DataPostError           = 910
-	DataPutError            = 911
-	RegDataError            = 912
+	MaxDataSize = 16 * 1024 * 1024
+)
 
+const (
 	ContentType     = "Content-Type"
 	ApplicationJson = "application/json"
+	JobIdHeader     = "X-Job-Id"
+	WorkerIdHeader  = "X-Worker-Id"
+	DataIdHeader    = "X-Data-Id"
+)
+
+var (
+	JobIdHeaderNotFoundError    = StatusDef{Code: 900, Message: JobIdHeader + " not found\n"}
+	WorkerIdHeaderNotFoundError = StatusDef{Code: 901, Message: WorkerIdHeader + " not found\n"}
+	DataIdHeaderNotFoundError   = StatusDef{Code: 902, Message: DataIdHeader + " not found\n"}
+	JsonUnmarshalError          = StatusDef{Code: 903, Message: "JsonUnmarshalError\n"}
+	JsonMarshalError            = StatusDef{Code: 904, Message: "JsonMarshalError\n"}
+	CreateFormFileError         = StatusDef{Code: 905, Message: "CreateFormFileError\n"}
+	ParseMultipartFormError     = StatusDef{Code: 906, Message: "ParseMultipartFormError\n"}
+	FormFileError               = StatusDef{Code: 907, Message: "FormFileError\n"}
+	ReadAllError                = StatusDef{Code: 908, Message: "ReadAllError\n"}
 )
 
 func Root(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +70,7 @@ func Start(addr, port string) {
 	http.HandleFunc(mecrmrootpath, MecrmRoot)
 	http.HandleFunc(workerpath, Worker)
 	http.HandleFunc(contractpath, Worker_Contract_Get)
-	http.HandleFunc(jobpath)
+	//http.HandleFunc(jobpath)
 	http.HandleFunc(datapath, Data)
 	http.HandleFunc(regpath, Data_Reg_Post)
 

@@ -30,8 +30,8 @@ application/json
 {
   worker_id string
   job_id string
-  data1_id string
-  data2_id string
+  data1_id string // データ受信用
+  data2_id string // データ送信用，requester, worker共に設定可能．すでに設定してあればそこに送信
   function_id string
   runtime string
 }

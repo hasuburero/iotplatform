@@ -33,6 +33,7 @@ const (
 const (
 	ContentType     = "Content-Type"
 	ApplicationJson = "application/json"
+	TextPlain       = "text/plain"
 	JobIdHeader     = "X-Job-Id"
 	WorkerIdHeader  = "X-Worker-Id"
 	DataIdHeader    = "X-Data-Id"

@@ -76,6 +76,7 @@ func Data_Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set(ContentType, TextPlain)
 	w.Write([]byte(data_id))
 	return
 }
@@ -113,6 +114,7 @@ func Data_Put(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set(ContentType, TextPlain)
 	w.Write([]byte(data_id))
 	return
 }

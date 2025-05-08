@@ -11,11 +11,11 @@ import (
 )
 
 import (
-	"github"
+	"github.com/hasuburero/mecrm/api/common"
 )
 
 func GetData(data_id string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, self.Url+datapath, nil)
+	req, err := http.NewRequest(http.MethodGet, self.Mecrm.Origin+datapath, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -198,4 +198,7 @@ func (self *Worker) PostDataReg() (string, error) {
 	}
 
 	return string(res_body), nil
+}
+
+func Init(scheme, addr, port string) error {
 }

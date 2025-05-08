@@ -186,7 +186,7 @@ response
 no content
 ```
 
-## DELETE /job
+### DELETE /job
 
 request
 
@@ -205,9 +205,100 @@ no content
 ## Data
 
 ```
-POST /data/reg
 GET /data
 POST /data
 PUT /data
 DELETE /data
+POST /data/reg
+```
+
+### GET /data
+
+request
+
+```
+X-Data-Id: xxxxxxxx // data_id, 8 bytes?
+
+no content
+```
+
+response
+
+```
+multipart/form-data; // fieldnameは特に規定していない．デフォルトは"file"とする
+
+content
+```
+
+### POST /data
+
+request
+
+```
+multipart/form-data; // fieldnameは特に規定していない．デフォルトは"file"とする
+
+data // ファイル名は規定なし．デフォルトは"file", サーバ上ではdata_idをファイル名とする
+```
+
+response
+
+```
+text/plain
+
+xxxxxxxx // data_id, 8 bytes?
+```
+
+### PUT /data
+
+request
+
+```
+X-Data-Id: xxxxxxxx // data_id, 8 bytes?
+multipart/form-data;
+
+data // ファイル名は規定なし，デフォルトは"file", サーバ上ではdata_idを　ファイル名とする
+```
+
+response
+
+```
+text/plain
+
+xxxxxxxx // data_id, 8 bytes?
+```
+
+### DELETE /data
+
+request
+
+```
+X-Data-Id: xxxxxxxx // data_id, 8 bytes?
+
+no content
+```
+
+response
+
+```
+no content
+
+no content
+```
+
+### POST /data/reg
+
+request
+
+```
+no content
+
+no content
+```
+
+response
+
+```
+text/plain
+
+xxxxxxxx // data_id, 8 bytes?
 ```

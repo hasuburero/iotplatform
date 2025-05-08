@@ -108,6 +108,7 @@ application/json
 ```
 GET /job
 POST /job
+PUT /job
 DELETE /job
 ```
 
@@ -159,7 +160,30 @@ application/json
 }
 ```
 
-### DELETE /job
+### PUT /job
+
+request
+
+```
+application/json
+
+{
+  job_id string
+  data1_id string
+  data2_id string
+  function_id string
+  runtime string
+  status string
+}
+```
+
+response
+
+```
+no content
+```
+
+## DELETE /job
 
 request
 
@@ -178,99 +202,9 @@ no content
 ## Data
 
 ```
+POST /data/reg
 GET /data
 POST /data
 PUT /data
 DELETE /data
-POST /data/reg
-```
-
-### GET /data
-
-request
-
-```
-X-Data-Id: xxxxxxxx // 8 bytes?
-
-no content
-```
-
-response
-
-```
-multipart/form-data; boundary=xxxxxxxx
-
-multipart data
-- data
-```
-
-### POST /data
-
-request
-
-```
-multipart/form-data; boundary=xxxxx
-
-multipart data
-- data
-```
-
-response
-
-```
-text/plain
-
-xxxxxxxx // data_id, 8 bytes?
-```
-
-### PUT /data
-
-request
-
-```
-X-Data-Id: xxxxxxxx // data_id, 8 bytes?
-multipart/form-data; boundary=xxxxx
-
-multipart data
-- data
-```
-
-response
-
-```
-text/plain
-
-xxxxxxxx // data_id, 8 bytes?
-```
-
-### DELETE /data
-
-request
-
-```
-X-Data-Id: xxxxxxxx // data_id, 8 bytes?
-
-no content
-```
-
-response
-
-```
-no content
-```
-
-### POST /data/reg
-
-request
-
-```
-no content
-```
-
-response
-
-```
-text/plain
-
-xxxxxxxx // data_id, 8 bytes?
 ```

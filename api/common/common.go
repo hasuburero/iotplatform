@@ -1,16 +1,21 @@
 package common
 
-import (
-	"net/http"
-)
+import ()
+
+type Mecrm struct {
+	Scheme string
+	Addr   string
+	Port   string
+	Origin string
+}
 
 const (
 	Mecrmpath    = "/mecrm"
-	Workerpath   = mecrmpath + "/worker"
-	Datapath     = mecrmpath + "/data"
-	Dataregpath  = datapath + "/reg"
-	Jobpath      = mecrmpath + "/job"
-	Contractpath = workerpath + "/contract"
+	Workerpath   = Mecrmpath + "/worker"
+	Datapath     = Mecrmpath + "/data"
+	Dataregpath  = Datapath + "/reg"
+	Jobpath      = Mecrmpath + "/job"
+	Contractpath = Workerpath + "/contract"
 )
 
 const (

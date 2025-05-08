@@ -5,19 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hasuburero/mecrm/api/common"
 	"io"
 	"net/http"
 )
 
+// localpackage
+import (
+	"github.com/hasuburero/mecrm/api/common"
+)
+
+// remotepackage
+import ()
+
 type Worker struct {
-	Addr      string
-	Port      string
+	Mecrm     common.Mecrm
 	Worker_id string
 	Runtime   []string
 	Client    *http.Client
-	Scheme    string
-	Url       string
+	Origin    string
 }
 
 type Post_Worker_Request_Struct struct {
@@ -59,7 +64,7 @@ func (self *Worker) PostWorker() (Post_Worker_Response_Struct, error) {
 	}
 
 	req_body := bytes.NewBuffer(req_buf)
-	req, err := http.NewRequest(http.MethodPost, self.Scheme+self.Addr+self.Port+common.Workerpath, req_body)
+	req, err := http.NewRequest(http.MethodPost, self.Mecrm.Origin+common.Workerpath, req_body)
 	if err != nil {
 		return Post_Worker_Response_Struct{}, err
 	}
@@ -100,7 +105,7 @@ func (self *Worker) GetWorker(worker_id string) (Get_Worker_Response_Struct, err
 	}
 
 	req_body := bytes.NewBuffer(json_buf)
-	req, err := http.NewRequest(http.MethodGet, self.Scheme+self.Addr+self.Port+common.Workerpath, req_body)
+	req, err := http.NewRequest(http.MethodGet, self.Mecrm.Origin+common.Workerpath, req_body)
 	if err != nil {
 		return Get_Worker_Response_Struct{}, err
 	}
@@ -146,7 +151,7 @@ func (self *Worker) Contract() (Get_Worker_Contract_Response_Struct, error) {
 
 	req_body := bytes.NewBuffer(json_buf)
 
-	req, err := http.NewRequest(http.MethodGet, self.Scheme+self.Addr+self.Port+common.Contractpath, req_body)
+	req, err := http.NewRequest(http.MethodGet, self.Mecrm.Origin+common.Contractpath, req_body)
 	if err != nil {
 		return Get_Worker_Contract_Response_Struct{}, err
 	}
@@ -181,13 +186,13 @@ func (self *Worker) Contract() (Get_Worker_Contract_Response_Struct, error) {
 
 func MakeWorker(addr, port, scheme string, runtimes []string) *Worker {
 	worker := new(Worker)
-	worker.Addr = addr
-	worker.Port = ":" + port
+	worker.Mecrm.Scheme = scheme
+	worker.Mecrm.Addr = addr
+	worker.Mecrm.Port = ":" + port
+	worker.Mecrm.Origin = scheme + "://" + addr + ":" + port
 	worker.Runtime = make([]string, len(runtimes))
 	copy(worker.Runtime, runtimes)
 	worker.Client = &http.Client{}
-	worker.Scheme = scheme
-	worker.Url = worker.Scheme + worker.Addr + worker.Port
 
 	return worker
 }

@@ -108,6 +108,7 @@ application/json
 ```
 GET /job
 POST /job
+PUT /job
 DELETE /job
 ```
 
@@ -132,6 +133,7 @@ application/json
   data2_id string
   function_id string
   runtime string
+  status string
 }
 ```
 
@@ -157,6 +159,29 @@ application/json
 {
   job_id string
 }
+```
+
+### PUT /job
+
+request
+
+```
+application/json
+
+{
+  job_id string
+  data1_id string
+  data2_id string
+  function_id string
+  runtime string
+  status string
+}
+```
+
+response
+
+```
+no content
 ```
 
 ## DELETE /job

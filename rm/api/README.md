@@ -133,6 +133,7 @@ application/json
   data2_id string
   function_id string
   runtime string
+  status string
 }
 ```
 

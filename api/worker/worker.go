@@ -29,7 +29,8 @@ type Post_Worker_Request_Struct struct {
 	Runtime []string `json:"runtime"`
 }
 type Post_Worker_Response_Struct struct {
-	Worker_id string `json:"worker_id"`
+	Worker_id string   `json:"worker_id"`
+	Runtime   []string `json:"runtime"`
 }
 
 type Get_Worker_Request_Struct struct {
@@ -91,6 +92,7 @@ func (self *Worker) PostWorker() (Post_Worker_Response_Struct, error) {
 	var ctx Post_Worker_Response_Struct
 	err = json.Unmarshal(res_body, &ctx)
 	if err != nil {
+		fmt.Println(string(res_body))
 		return Post_Worker_Response_Struct{}, err
 	}
 

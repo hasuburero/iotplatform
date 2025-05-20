@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 )
 
 import (
@@ -20,6 +19,7 @@ const (
 
 const (
 	hello = "Hello world!!\n"
+	bye   = "Good Bye!!\n"
 )
 
 var (
@@ -39,12 +39,14 @@ func main() {
 		return
 	}
 
+	fmt.Println("Posting Data")
 	data_id, err := data.PostData([]byte(hello))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	fmt.Println("Posting Job")
 	job_instance.Data1_id = data_id
 	_, err = job_instance.PostJob()
 	if err != nil {
@@ -52,5 +54,69 @@ func main() {
 		return
 	}
 
-	worker_instance.
+	fmt.Println("Contracting Job")
+	contract_instance, err := worker_instance.Contract()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Getting Job 1")
+	job_instance, err = job.GetJob(contract_instance.Job_id)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(job_instance.Status)
+
+	fmt.Println("Getting Job 2")
+	err = job_instance.GetJob()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(job_instance.Status)
+
+	fmt.Println("Getting Data")
+	content, err := data.GetData(job_instance.Data1_id)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(content))
+
+	fmt.Println("Posting Data")
+	data_id, err = data.PostData([]byte(bye))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Updating Job")
+	job_instance.Data2_id = data_id
+	job_instance.Status = job.Finished
+	err = job_instance.PutJob()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Getting Job")
+	err = job_instance.GetJob()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(job_instance.Status)
+
+	fmt.Println("Getting Data")
+	content, err = data.GetData(job_instance.Data2_id)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(content))
+
+	fmt.Println("Finished sequence")
+	return
 }

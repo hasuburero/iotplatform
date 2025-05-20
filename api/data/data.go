@@ -19,8 +19,8 @@ var (
 	Client   *http.Client
 )
 
-func GetData(origin, data_id string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, origin+common.Datapath, nil)
+func GetData(data_id string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, Platform.Origin+common.Datapath, nil)
 	if err != nil {
 		return nil, err
 	}

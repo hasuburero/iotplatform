@@ -107,14 +107,14 @@ func GetJobRequest(origin, job_id string) (Job, error) {
 	return Job{Job_id: ctx.Job_id, Data1_id: ctx.Data1_id, Data2_id: ctx.Data2_id, Function_id: ctx.Function_id, Runtime: ctx.Runtime, Status: ctx.Status}, nil
 }
 
-func GetJob(job_id, origin string) (*Job, error) {
-	if job_id == "" || origin == "" {
+func GetJob(job_id string) (*Job, error) {
+	if job_id == "" || Platform.Origin == "" {
 		return nil, errors.New(EmptyArg)
 	}
 
 	var job *Job
 	job = new(Job)
-	job_buf, err := GetJobRequest(origin, job_id)
+	job_buf, err := GetJobRequest(Platform.Origin, job_id)
 	*job = job_buf
 	if err != nil {
 		return nil, err

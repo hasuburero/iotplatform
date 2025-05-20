@@ -1,4 +1,3 @@
 # mecrm
-sample mecrm go program
-worker api -> wAPI.md
-client api -> cAPI.md
+
+Light weight MEC-RM (IoT Platform)

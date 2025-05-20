@@ -2,7 +2,7 @@ package common
 
 import ()
 
-type Mecrm struct {
+type Platform struct {
 	Scheme string
 	Addr   string
 	Port   string
@@ -10,11 +10,11 @@ type Mecrm struct {
 }
 
 const (
-	Mecrmpath    = "/mecrm"
-	Workerpath   = Mecrmpath + "/worker"
-	Datapath     = Mecrmpath + "/data"
+	Platformpath = "/iotplatform"
+	Workerpath   = Platformpath + "/worker"
+	Datapath     = Platformpath + "/data"
 	Dataregpath  = Datapath + "/reg"
-	Jobpath      = Mecrmpath + "/job"
+	Jobpath      = Platformpath + "/job"
 	Contractpath = Workerpath + "/contract"
 )
 

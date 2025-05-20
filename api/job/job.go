@@ -18,7 +18,7 @@ import (
 import ()
 
 type Job struct {
-	Mecrm       common.Mecrm
+	Platform    common.Platform
 	Job_id      string
 	Data1_id    string
 	Data2_id    string
@@ -28,8 +28,8 @@ type Job struct {
 }
 
 const (
-	UndefinedMecrm = "Mecrm is undefined (nil)\n"
-	EmptyArg       = "Empty argument\n"
+	UndefinedPlatform = "Platform is undefined (nil)\n"
+	EmptyArg          = "Empty argument\n"
 )
 
 const (
@@ -39,8 +39,8 @@ const (
 )
 
 var (
-	Mecrm  *common.Mecrm
-	Client *http.Client
+	Platform *common.Platform
+	Client   *http.Client
 )
 
 type Get_Job_Response_Struct struct {
@@ -123,11 +123,11 @@ func GetJob(job_id, origin string) (*Job, error) {
 }
 
 func (self *Job) GetJob() error {
-	if self.Job_id == "" || self.Mecrm.Origin == "" {
+	if self.Job_id == "" || self.Platform.Origin == "" {
 		return errors.New(EmptyArg)
 	}
 
-	job_buf, err := GetJobRequest(self.Mecrm.Origin, self.Job_id)
+	job_buf, err := GetJobRequest(self.Platform.Origin, self.Job_id)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (self *Job) PostJob() (string, error) {
 
 	req_buf := bytes.NewBuffer(buf)
 
-	req, err := http.NewRequest(http.MethodPost, self.Mecrm.Origin+common.Datapath, req_buf)
+	req, err := http.NewRequest(http.MethodPost, self.Platform.Origin+common.Datapath, req_buf)
 	if err != nil {
 		return "", err
 	}
@@ -202,7 +202,7 @@ func (self *Job) PutJob() error {
 	}
 
 	req_buf := bytes.NewBuffer(buf)
-	req, err := http.NewRequest(http.MethodPut, self.Mecrm.Origin+common.Datapath, req_buf)
+	req, err := http.NewRequest(http.MethodPut, self.Platform.Origin+common.Datapath, req_buf)
 	if err != nil {
 		return err
 	}
@@ -254,34 +254,34 @@ func DeleteJob(job_id, origin string) error {
 }
 
 func (self *Job) DeleteJob() error {
-	if self.Job_id == "" || self.Mecrm.Origin == "" {
+	if self.Job_id == "" || self.Platform.Origin == "" {
 		return errors.New(EmptyArg)
 	}
 
-	err := DeleteJobRequest(self.Job_id, self.Mecrm.Origin)
+	err := DeleteJobRequest(self.Job_id, self.Platform.Origin)
 	return err
 }
 
 func Init(scheme, addr, port string) error {
-	Mecrm = new(common.Mecrm)
-	Mecrm.Scheme = scheme
-	Mecrm.Addr = addr
-	Mecrm.Port = port
-	Mecrm.Origin = scheme + "://" + addr + ":" + port
+	Platform = new(common.Platform)
+	Platform.Scheme = scheme
+	Platform.Addr = addr
+	Platform.Port = port
+	Platform.Origin = scheme + "://" + addr + ":" + port
 
 	Client = &http.Client{}
 	return nil
 }
 
 func MakeJob(runtime string) (*Job, error) {
-	if Mecrm == nil {
-		return nil, errors.New(UndefinedMecrm)
+	if Platform == nil {
+		return nil, errors.New(UndefinedPlatform)
 	}
 	job := new(Job)
-	job.Mecrm.Scheme = Mecrm.Scheme
-	job.Mecrm.Addr = Mecrm.Addr
-	job.Mecrm.Port = Mecrm.Port
-	job.Mecrm.Origin = Mecrm.Scheme + "://" + Mecrm.Addr + ":" + Mecrm.Port
+	job.Platform.Scheme = Platform.Scheme
+	job.Platform.Addr = Platform.Addr
+	job.Platform.Port = Platform.Port
+	job.Platform.Origin = Platform.Scheme + "://" + Platform.Addr + ":" + Platform.Port
 	job.Runtime = runtime
 	job.Status = Pending
 

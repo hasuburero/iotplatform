@@ -11,7 +11,7 @@ import (
 
 // localpackage
 import (
-	"github.com/hasuburero/mecrm/api/common"
+	"github.com/hasuburero/iotplatform/api/common"
 )
 
 // remote package
@@ -262,7 +262,7 @@ func (self *Job) DeleteJob() error {
 	return err
 }
 
-func Init(scheme, addr, port string) error {
+func Init(scheme, addr, port string) {
 	Platform = new(common.Platform)
 	Platform.Scheme = scheme
 	Platform.Addr = addr
@@ -270,7 +270,7 @@ func Init(scheme, addr, port string) error {
 	Platform.Origin = scheme + "://" + addr + ":" + port
 
 	Client = &http.Client{}
-	return nil
+	return
 }
 
 func MakeJob(runtime string) (*Job, error) {

@@ -11,14 +11,14 @@ import (
 
 // localpackage
 import (
-	"github.com/hasuburero/mecrm/api/common"
+	"github.com/hasuburero/iotplatform/api/common"
 )
 
 // remotepackage
 import ()
 
 type Worker struct {
-	Mecrm     common.Mecrm
+	Platform  common.Platform
 	Worker_id string
 	Runtime   []string
 	Client    *http.Client
@@ -64,7 +64,7 @@ func (self *Worker) PostWorker() (Post_Worker_Response_Struct, error) {
 	}
 
 	req_body := bytes.NewBuffer(req_buf)
-	req, err := http.NewRequest(http.MethodPost, self.Mecrm.Origin+common.Workerpath, req_body)
+	req, err := http.NewRequest(http.MethodPost, self.Platform.Origin+common.Workerpath, req_body)
 	if err != nil {
 		return Post_Worker_Response_Struct{}, err
 	}
@@ -105,7 +105,7 @@ func (self *Worker) GetWorker(worker_id string) (Get_Worker_Response_Struct, err
 	}
 
 	req_body := bytes.NewBuffer(json_buf)
-	req, err := http.NewRequest(http.MethodGet, self.Mecrm.Origin+common.Workerpath, req_body)
+	req, err := http.NewRequest(http.MethodGet, self.Platform.Origin+common.Workerpath, req_body)
 	if err != nil {
 		return Get_Worker_Response_Struct{}, err
 	}
@@ -151,7 +151,7 @@ func (self *Worker) Contract() (Get_Worker_Contract_Response_Struct, error) {
 
 	req_body := bytes.NewBuffer(json_buf)
 
-	req, err := http.NewRequest(http.MethodGet, self.Mecrm.Origin+common.Contractpath, req_body)
+	req, err := http.NewRequest(http.MethodGet, self.Platform.Origin+common.Contractpath, req_body)
 	if err != nil {
 		return Get_Worker_Contract_Response_Struct{}, err
 	}
@@ -184,12 +184,12 @@ func (self *Worker) Contract() (Get_Worker_Contract_Response_Struct, error) {
 	return ctx, nil
 }
 
-func MakeWorker(addr, port, scheme string, runtimes []string) *Worker {
+func MakeWorker(scheme, addr, port string, runtimes []string) *Worker {
 	worker := new(Worker)
-	worker.Mecrm.Scheme = scheme
-	worker.Mecrm.Addr = addr
-	worker.Mecrm.Port = ":" + port
-	worker.Mecrm.Origin = scheme + "://" + addr + ":" + port
+	worker.Platform.Scheme = scheme
+	worker.Platform.Addr = addr
+	worker.Platform.Port = ":" + port
+	worker.Platform.Origin = scheme + "://" + addr + ":" + port
 	worker.Runtime = make([]string, len(runtimes))
 	copy(worker.Runtime, runtimes)
 	worker.Client = &http.Client{}

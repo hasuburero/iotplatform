@@ -11,7 +11,7 @@ import (
 )
 
 import (
-	"github.com/hasuburero/mecrm/api/common"
+	"github.com/hasuburero/iotplatform/api/common"
 )
 
 var (
